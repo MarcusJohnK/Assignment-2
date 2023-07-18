@@ -1,0 +1,10 @@
+Changes Made:
+
+Items can now be added to and stored in Cart
+
+Items can now be removed from Cart
+
+Quantity increases/decreases when user adds/removes items from the cart
+
+Confirmation messages appears when user attempts to remove item
+

@@ -1,0 +1,47 @@
+
+//Marcus Koning, 000852414, November 22, 2022
+//The remove Function, sends a request to the ajax file
+//calls another function
+function doRemove( id ) {
+    var req = new Request('ajax.php', 
+    { method: 'post', 
+      type: 'basic', 
+      headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"},
+      body: 'action=rem&id='+id
+    });
+    fetch( req )
+        .then( response => {return response.text();})
+        .then( remitem );
+  }
+  //inserts information into the webpage
+  function remitem( data ) {
+    console.log("data: " + data );
+    document.getElementById("targetTable").innerHTML=data;
+  }
+  //inserts information into the webpage  
+  function additem( data ) {
+    console.log("data: " + data );
+    document.getElementById("targetTable").innerHTML+=data;
+  }
+//The add Function, sends a request to the ajax file
+//calls another function
+  function doAdd( data ) {
+    var req = new Request('ajax.php', 
+    { method: 'post', 
+      type: 'basic', 
+      headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"},
+      body: 'action=add&data='+data
+    });
+  
+    fetch( req )
+        .then( response => {return response.text();})
+        .then( additem );
+  }
+  //confirmation message, triggered when the user tries to remove an item from teh cart
+  function confirmationMessage( id){
+    let message = "Are you Sure?"
+    if(confirm(message) == true){
+        doRemove('id');
+    }
+  }
+  

@@ -1,0 +1,23 @@
+
+<?php
+//Marcus Koning, 000852414, November 22, 2022
+
+//connects to the database
+$dsn = 'mysql:dbname=sa000852414;host=localhost';
+$dbUser = 'sa000852414';
+$password = 'Sa_20010820';
+try {
+    $db = new PDO(
+        $dsn,
+        $dbUser,
+        $password
+    );
+} catch (Exception $e) {
+    die("ERROR: Couldn't connect. {$e->getMessage()}");
+}
+$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+//used in the ajax file, selects all from the shoppingCart database via query, executes query
+$displayCart = $db->prepare("SELECT * FROM shoppingcart WHERE product_quantity > 0");
+$displayCart->execute();
+$resultOfDisplayCart = $displayCart->setFetchMode(PDO::FETCH_ASSOC);
+?>

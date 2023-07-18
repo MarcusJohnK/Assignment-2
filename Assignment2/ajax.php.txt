@@ -1,0 +1,61 @@
+
+<?php
+//Marcus Koning, 000852414, November 22, 2022
+
+
+session_start();        //begins session
+include "connect.php";  //connects database
+$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$action = filter_input( INPUT_POST, 'action',
+            FILTER_SANITIZE_SPECIAL_CHARS  );   //determines which action is being triggered
+$action2 = filter_input( INPUT_POST, 'data',
+            FILTER_SANITIZE_SPECIAL_CHARS  );   //the id of the item clicked
+
+//calls action add which will add to cart
+if ( $action == 'add' ) {
+    //places catalogue items into shopping cart
+    $actionPopCart = $db->prepare("INSERT INTO shoppingcart (product_id, product_name, product_price, product_quantity) SELECT product_id, product_name, product_price, 0 FROM catalogue WHERE NOT EXISTS (SELECT product_id FROM shoppingcart WHERE product_id = $action2 LIMIT 1)");
+    $actionPopCart->execute();
+    //increases the quantity of the selected cart item by 1
+    $actionIncreaseCart = $db->prepare("UPDATE shoppingcart SET product_quantity = product_quantity +1 Where product_id = $action2");
+    $actionIncreaseCart->execute();
+    //decreases the quantity of the selected catalogue item by 1
+    $actionLowerCatQuantity = $db->prepare("UPDATE catalogue SET product_quantity = product_quantity - 1 Where product_id = $action2");
+    $actionLowerCatQuantity->execute();
+    //displays content of shopping cart
+    foreach ($displayCart as $dC) {
+        echo '<tr><td>'.$dC['product_id'].'</td>'.
+        '<td>'.$dC['product_name'].'</td>'.
+        '<td>'.$dC['product_price'].'</td>'.
+        '<td>'.$dC['product_quantity'].'</td>'.
+        '<td><button onclick="confirmationMessage('.$dC['product_id'].')">Remove</button></td>'.
+        '</tr>';
+    }
+
+} 
+//calls action rem which will remove an item from the cart
+else if ( $action == 'rem' ) {
+    //gets targeted item's id
+    $target = filter_input( INPUT_POST, 'id', FILTER_VALIDATE_INT );
+    //determines if it is valid
+    if ( $target !== false && $target !== null) {
+        //decreases quantity of item by 1
+        $actionRemoveFromCart = $db->prepare("UPDATE shoppingcart SET product_quantity = product_quantity - 1 Where product_id = $target");
+        $actionRemoveFromCart->execute();
+        //increases quanity of catalogue item by 1
+        $actionIncreaseCatQuantity = $db->prepare("UPDATE catalogue SET product_quantity = product_quantity + 1 Where product_id = $target");
+        $actionIncreaseCatQuantity->execute();
+        //displays cart contents
+        foreach ($displayCart as $dC) {
+            echo '<tr><td>'.$dC['product_id'].'</td>'.
+            '<td>'.$dC['product_name'].'</td>'.
+            '<td>'.$dC['product_price'].'</td>'.
+            '<td>'.$dC['product_quantity'].'</td>'.
+            '<td><button onclick="confirmationMessage('.$dC['product_id'].')">Remove</button></td>'.
+            '</tr>';
+        }
+        
+    }
+}
+
+?>

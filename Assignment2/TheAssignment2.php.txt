@@ -1,0 +1,233 @@
+<?php
+//Marcus Koning, 000852414, November 22, 2022
+session_start();        //starts session
+include "connect.php";  //connects to database
+$displayedItems = 'Blister_Packs'   //sets displayed item to Blister_Packs
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+    <link href="StyleSheet.css" rel="stylesheet" type ="text/css">
+    <script src="script.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <!--the header of the webpage, contains Store name and logo-->
+    <header>
+        <h1 class="bg-dark text-center text-white">POKE-STOP!<img src="images/Poke_Ball_icon.png"></h1>
+    </header>
+
+    <div class="bodyy"><!--beginning of body-->
+        <div class="container-fluid"><!--beginning of container-->
+            <div class="row justify-content-between center"> 
+
+        <!--This is the first item within the container, it 
+        contains the buttons Within Product Categories-->
+        <div class ="col-md-2">
+            <h1>PRODUCT CATEGORIES</h1>
+            <div class='bg-black'>;
+            <?php 
+                //runs through all the categories of catalogue database and displays one of each
+                $cat1 = $db->prepare("SELECT DISTINCT product_category FROM catalogue;");
+                $cat1->execute();
+                $result = $cat1->setFetchMode(PDO::FETCH_ASSOC);
+                foreach($cat1 as $c) {
+                    echo"<form class = 'p-2'><input type = 'hidden' name ='newValue' value = '{$c["product_category"]}'>";
+                    echo"<input type = 'submit' name ='displayedItems' value = '{$c["product_category"]}'></form>";
+                } 
+            ?>
+            <!--display everything button-->
+            <form class = "p-2"><input type = "submit" name ="Everything" value = "Everything"></form>
+            </div>
+        </div>
+
+        <!--This is the Middle Container Item-->
+        <div class ="col-md-5 row-5">
+            <h1 class = "alignText">PRODUCT CATALOG</h1>
+            
+            <?php
+                //based on what the user selected certain products will be displayed
+                if(isset($_GET['displayedItems'])){
+                    $stmt = $db->prepare("SELECT product_id, product_name, product_description, product_price, product_category, product_quantity FROM catalogue WHERE product_category LIKE '".$_GET["displayedItems"]."'");
+                }
+                if(isset($_GET['displayedItems'])){
+                    echo"<table class = 'table table-dark table-striped'>";
+                    $stmt->execute();
+                    $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
+                    //displays name, id, price and quantity
+                    foreach($stmt as $v) {
+                        echo"<tr><td>{$v["product_id"]}</td>";
+                        echo"<td>{$v["product_name"]}</td>";
+                        echo"<td>{$v["product_price"]}</td>";
+                        if($v["product_quantity"] <= 0){//checks to see if quantity is less than or equal too 0
+                            echo"<td class = 'text-warning'>{$v["product_quantity"]}</td>";
+                            echo"<td class = 'text-warning'> Out of Stock </td>";
+                        }else{
+                        echo"<td>{$v["product_quantity"]}</td>";
+                        ?>
+                        <!--View Item Button-->
+                        <td>
+                        <form>
+                        <input type = "hidden" name ="ViewTheItem" value = "<?= $v["product_id"] ?>">
+                        <input type = "submit" name ="View_Item" value = "View Item">
+                        </form>
+                        </td>
+                        </tr>
+                        <?php
+                        }
+                    }
+                    echo"</table>";
+                }else{
+                    // if neither the previous or next buttons have been pushed the items
+                    //displayed will be Blister_Packs
+                    if(!isset($_GET['Previous']) && !isset($_GET['NEXT'])){
+                        $displayedItems = 'Blister_Packs'; 
+                    }
+                    //if previous button is selected displayedItems will gain a new value
+                    //based on the current value of displayedItems
+                    if(isset($_GET['Previous'])){
+                        if($displayedItems === "Build_&_Battle_Box"){
+                            $displayedItems = "Blister_Packs";
+                        }else{
+                            $displayedItems = "Elite_Trainer_Box";
+                        }
+                    }
+                    //if Next button is selected displayedItems will gain a new value
+                    //based on the current value of displayedItems
+                    if(isset($_GET['Next'])){
+                        if($displayedItems === "Elite_Trainer_Box"){
+                            $displayedItems = "Blister_Packs";
+                        }
+                        else{
+                            $displayedItems = "Build_&_Battle_Box";
+                        }
+                    }
+                    //displays the items of the catalog to user
+                    if(!isset($_GET['displayedItems']) && !isset($_GET['View_Item'])){
+                        
+                        echo"<table class = 'table table-dark table-striped'>";
+                        $stmt = $db->prepare("SELECT * FROM catalogue WHERE product_category LIKE '".$displayedItems."'");
+                        $stmt->execute();
+                        $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
+                        foreach($stmt as $v) {
+                            echo"<tr><td>{$v["product_id"]}</td>";
+                            echo"<td>{$v["product_name"]}</td>";
+                            echo"<td>{$v["product_price"]}</td>";
+                            if($v["product_quantity"] === 0){
+                                echo"<td class = 'text-warning'>{$v["product_quantity"]}</td>";
+                                echo"<td class = 'text-warning'> Out of Stock </td>";
+                            }else{
+                            echo"<td>{$v["product_quantity"]}</td>";
+                            ?>
+                            <!--View Item Buttons-->
+                            <td>
+                            <form>
+                            <input type = "hidden" name ="ViewTheItem" value = "<?= $v["product_id"] ?>">
+                            <input type = "submit" name ="View_Item" value = "View Item">
+                            </form>
+                            </td>
+                            </tr>
+                            <?php
+                            
+                            }
+                        } 
+                        //PREVIOUS AND NEXT BUTTONS
+                        echo"<tr>";
+                        echo"<td>";
+                        //Previous button
+                        //button goes away if its value is Elite_Trainer_Box
+                        if(!($displayedItems === "Elite_Trainer_Box")){
+                            echo"<form><input type = 'submit' name ='Previous' value = 'Previous'></form>";
+                        }
+                        echo"</td>";
+                        echo"<td></td>";
+                        echo"<td></td>";
+                        echo"<td></td>";
+                        echo"<td>";
+                        //Next Button
+                        //button goes away if its value is Build_&_Battle_Box
+                        if(!($displayedItems === "Build_&_Battle_Box")){
+                            echo"<form><input type = 'submit' name ='Next' value = '  Next  '></form>";
+                        }
+                        echo"</td>";
+                        echo"</tr>";
+                        echo"</table>";
+                    }
+                }
+                ?>
+
+            <table class = 'table table-dark table-striped'>
+                <?php
+                //if View Item has been selected information about the selected product will be displayed
+                if(isset($_GET['View_Item'])){
+                    $stmt = $db->prepare("SELECT product_id, product_name, product_description, product_price, product_category, product_quantity FROM catalogue");
+                    $stmt->execute();
+                    $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
+                    foreach($stmt as $n){
+                        if($_GET['ViewTheItem']  === $n["product_id"]){
+                            echo"<tr>";
+                            echo"<td>Product Code</td>";
+                            echo"<td>{$n["product_id"]}</td>";
+                            echo"</tr>";
+
+                            echo"<tr>";
+                            echo"<td>Product Name</td>";
+                            echo"<td>{$n["product_name"]}</td>";
+                            echo"</tr>";
+
+                            echo"<tr>";
+                            echo"<td>Product Description</td>";
+                            echo"<td>{$n["product_description"]}</td>";
+                            echo"</tr>";
+
+                            echo"<tr>";
+                            echo"<td>Product Price</td>";
+                            echo"<td>{$n["product_price"]}</td>";
+                            echo"</tr>";
+                            echo"<tr>";
+                            if($n["product_quantity"] <= 0){//out of stock warning if quantity is below 1
+                                echo"<td class = 'text-warning'> Out of Stock </td>";
+                                echo"<td></td>";
+                            }else{
+                            ?>
+                            <!--THe ADD BUtton
+                            calls funtion from the script.js when clicked
+                            -->
+                            <td>
+                            <form id ="form" method="POST">  
+                            <input type='hidden' name = 'trueAdd' value ='<?=$n["product_id"] ?>'>
+                            <?php echo"<input type = 'button' onclick ='doAdd(".$n['product_id'].")' value='ADD'>"; ?>
+                            </form>
+                            </td>
+                            <td></td>
+                            <?php
+                            }
+                        }
+                    }  
+                }
+                ?>
+            </table>
+        </div>
+        <!--displays teh shopping cart-->
+        <div class ="col-md-2">
+        <table class="table table-primary table-striped" id="targetTable">
+        </table>
+        </div>    
+            </div><!-- end of row justify-content-between center di-->
+        </div><!--end of container fluid div-->
+    </div><!-- end of bodyy div-->
+</body>
+</html>
+
+
+
+
+
+
+
+
