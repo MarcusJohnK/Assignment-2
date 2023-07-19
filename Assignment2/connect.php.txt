@@ -3,9 +3,9 @@
 //Marcus Koning, 000852414, November 22, 2022
 
 //connects to the database
-$dsn = 'mysql:dbname=sa000852414;host=localhost';
-$dbUser = 'sa000852414';
-$password = 'Sa_20010820';
+$dsn = 'mysql:dbname=;host=localhost';
+$dbUser = ;
+$password = ;
 try {
     $db = new PDO(
         $dsn,
